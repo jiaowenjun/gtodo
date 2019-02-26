@@ -120,6 +120,8 @@ setup_tree_view (GtkTreeStore *treestore)
     /* 向多列视图添加该列 */
     gtk_tree_view_append_column (GTK_TREE_VIEW (treeview), column1);
 
+    gtk_widget_set_hexpand (treeview, TRUE);
+    gtk_widget_set_vexpand (treeview, TRUE);
 
     return treeview;
 }
@@ -149,12 +151,13 @@ on_activate (GtkApplication* app,
     /* 创建多列视图 */
     treeview = setup_tree_view (treestore);
 
-    /* 添加网格布局 */
+    /* 创建网格布局 */
     grid = gtk_grid_new ();
-    gtk_container_add (GTK_CONTAINER (window), grid);
+    gtk_grid_set_row_spacing (GTK_GRID (grid), 10);
+    gtk_grid_set_column_spacing (GTK_GRID (grid), 10);
 
     /* 向网格布局添加多列视图 */
-    gtk_grid_attach (GTK_GRID (grid), treeview, 0, 0, 2, 1);
+    gtk_grid_attach (GTK_GRID (grid), treeview, 0, 0, 2, 1);  // x, y, width, height
 
     /* 添加输入框 */
     entry = gtk_entry_new ();
@@ -163,6 +166,9 @@ on_activate (GtkApplication* app,
     /* 添加按钮 */
     button = gtk_button_new_with_label ("Add Task");
     gtk_grid_attach (GTK_GRID (grid), button, 1, 1, 1, 1);
+
+    /* 向窗口添加 Grid */
+    gtk_container_add (GTK_CONTAINER (window), grid);
     
     /* 显示窗口 */
     gtk_widget_show_all (window);
