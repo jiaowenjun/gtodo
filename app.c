@@ -8,6 +8,29 @@ enum
     N_COLUMNS       /* 总列数：2 */
 };
 
+/* 复选框鼠标点击事件响应函数 */
+static void
+on_toggle(GtkCellRendererToggle *toggle,
+          gchar *path,
+          gpointer user_data)
+{
+    /* 1. 从 path 中获取底层数据的行索引 */
+    GtkTreeIter iter;
+    gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(user_data), &iter, path);
+
+    /* 2. 根据行索引获取该行数据第0列的值（布尔值） */
+    gboolean checked;
+    gtk_tree_model_get(GTK_TREE_MODEL(user_data),            // 底层数据
+                                      &iter,                 // 行索引
+                                      CHECKED_COL, &checked, // 列索引，存放值的变量
+                                      -1);                   // -1 结束参数列表
+
+    /* 3. 将该行第0列的布尔值反转 */
+    gtk_tree_store_set(GTK_TREE_STORE(user_data),            // 底层数据
+                       &iter,                                // 行索引
+                       CHECKED_COL, !checked,                // 列索引，新值
+                       -1);                                  // -1 结束参数列表
+}
 
 /* GApplication 的 activate 信号处理函数*/
 static void
@@ -55,6 +78,12 @@ on_activate (GtkApplication* app,
     /* 创建视图第0列的渲染器：复选框 */
     GtkCellRenderer *checked_renderer;
     checked_renderer = gtk_cell_renderer_toggle_new ();
+
+    /* 为复选框的鼠标点击事件绑定响应函数 */
+    g_signal_connect(checked_renderer,       // 信号发出者
+                     "toggled",              // 信号名
+                     G_CALLBACK (on_toggle), // 响应函数
+                     store);                 // 传递给响应函数的自定义数据
 
     /* 创建视图第0列，启用渲染器，并将渲染器属性与底层数据绑定 */
     GtkTreeViewColumn *column0;
