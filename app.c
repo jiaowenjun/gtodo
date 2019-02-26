@@ -88,7 +88,7 @@ on_activate (GtkApplication* app,
     /* 创建视图第0列，启用渲染器，并将渲染器属性与底层数据绑定 */
     GtkTreeViewColumn *column0;
     column0 = gtk_tree_view_column_new_with_attributes (
-        "已完成",                /* 列名 */
+        "Done",                 /* 列名 */
         checked_renderer,       /* 复选框渲染器 */
         "active", CHECKED_COL,  /* 复选框的 active 属性（是否打钩）与底层数据绑定 */
         NULL);
@@ -103,7 +103,7 @@ on_activate (GtkApplication* app,
     /* 创建视图第1列，启用渲染器，并将渲染器属性与底层数据绑定 */
     GtkTreeViewColumn *column1;
     column1 = gtk_tree_view_column_new_with_attributes (
-        "待办事项",              /* 列名 */
+        "To-do List",           /* 列名 */
         text_renderer,          /* 文本框渲染器 */
         "text", TEXT_COL,       /* 文本框的 text 属性（文本内容）与底层数据绑定 */
         NULL);
