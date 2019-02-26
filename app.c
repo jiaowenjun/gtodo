@@ -32,48 +32,56 @@ on_toggle(GtkCellRendererToggle *toggle,
                        -1);                                  // -1 结束参数列表
 }
 
-/* GApplication 的 activate 信号处理函数*/
+
+/* 设置窗口属性 */
 static void
-on_activate (GtkApplication* app,
-             gpointer        user_data)
+set_window_properties (GtkWindow *window)
 {
-    /* 创建窗口 */
-    GtkWidget *window;
-    window = gtk_application_window_new (app);
+    gtk_window_set_title (window, "GTODO");
+    gtk_window_set_default_size (window, 400, 400);
+}
 
-    /* 设置窗口属性 */
-    gtk_window_set_title (GTK_WINDOW (window), "GTODO");
-    gtk_window_set_default_size (GTK_WINDOW (window), 200, 200);
 
-    /* 创建底层数据 */
-    GtkTreeStore *store;
-    store = gtk_tree_store_new(N_COLUMNS,       /* 总列数：2 */
-                               G_TYPE_BOOLEAN,  /* 第0列：待办项是否已完成，布尔值 */
-                               G_TYPE_STRING    /* 第1列：待办项内容，字符串 */
-                               );
-
-    /* 数据行索引（行下标） */
-    GtkTreeIter iter;
-
+/* 添加一行数据 */
+static void
+append_todo_item (GtkTreeStore *store, gboolean checked, gchar *text)
+{
     /* 获取新一行数据的行索引 */
+    GtkTreeIter iter;
     gtk_tree_store_append(store, &iter, NULL);
 
     /* 在该索引位置插入一行数据 */
     gtk_tree_store_set(store, &iter,
-                       CHECKED_COL, FALSE,          /* 第0列 */
-                       TEXT_COL, "买苹果",    /* 第1列 */
+                       CHECKED_COL, checked,    /* 第0列 */
+                       TEXT_COL, text,          /* 第1列 */
                        -1);
+}
 
-    /* 再添加一行数据 */
-    gtk_tree_store_append(store, &iter, NULL);
-    gtk_tree_store_set(store, &iter,
-                       CHECKED_COL, FALSE,          /* 第0列 */
-                       TEXT_COL, "买铅笔",    /* 第1列 */
-                       -1);
-    
-    /* 创建多列视图 */
+
+/* 创建底层数据 */
+static GtkTreeStore *
+setup_tree_store ()
+{
+    GtkTreeStore *treestore;
+    treestore = gtk_tree_store_new(N_COLUMNS,       /* 总列数：2 */
+                                   G_TYPE_BOOLEAN,  /* 第0列：待办项是否已完成，布尔值 */
+                                   G_TYPE_STRING    /* 第1列：待办项内容，字符串 */
+                                   );
+
+    append_todo_item (treestore, FALSE, "Buy an apple");
+    append_todo_item (treestore, FALSE, "Buy a pencil");
+
+
+    return treestore;
+}
+
+
+/* 创建多列视图 */
+static GtkWidget *
+setup_tree_view (GtkTreeStore *treestore)
+{
     GtkWidget *treeview;
-    treeview = gtk_tree_view_new_with_model (GTK_TREE_MODEL(store));
+    treeview = gtk_tree_view_new_with_model (GTK_TREE_MODEL(treestore));
 
     /* 创建视图第0列的渲染器：复选框 */
     GtkCellRenderer *checked_renderer;
@@ -83,7 +91,7 @@ on_activate (GtkApplication* app,
     g_signal_connect(checked_renderer,       // 信号发出者
                      "toggled",              // 信号名
                      G_CALLBACK (on_toggle), // 响应函数
-                     store);                 // 传递给响应函数的自定义数据
+                     treestore);                 // 传递给响应函数的自定义数据
 
     /* 创建视图第0列，启用渲染器，并将渲染器属性与底层数据绑定 */
     GtkTreeViewColumn *column0;
@@ -111,6 +119,32 @@ on_activate (GtkApplication* app,
     
     /* 向多列视图添加该列 */
     gtk_tree_view_append_column (GTK_TREE_VIEW (treeview), column1);
+
+
+    return treeview;
+}
+
+
+/* GApplication 的 activate 信号处理函数*/
+static void
+on_activate (GtkApplication* app,
+             gpointer        user_data)
+{
+    GtkWidget *window;
+    GtkTreeStore *treestore;
+    GtkWidget *treeview;
+
+    /* 创建窗口 */
+    window = gtk_application_window_new (app);
+
+    /* 设置窗口属性 */
+    set_window_properties (GTK_WINDOW (window));
+
+    /* 创建底层数据 */
+    treestore = setup_tree_store ();
+    
+    /* 创建多列视图 */
+    treeview = setup_tree_view (treestore);
 
     /* 向窗口添加多列视图 */
     gtk_container_add (GTK_CONTAINER (window), treeview);
