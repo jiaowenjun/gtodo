@@ -42,7 +42,7 @@ on_activate (GtkApplication* app,
     window = gtk_application_window_new (app);
 
     /* 设置窗口属性 */
-    gtk_window_set_title (GTK_WINDOW (window), "Window");
+    gtk_window_set_title (GTK_WINDOW (window), "GTODO");
     gtk_window_set_default_size (GTK_WINDOW (window), 200, 200);
 
     /* 创建底层数据 */
@@ -61,14 +61,14 @@ on_activate (GtkApplication* app,
     /* 在该索引位置插入一行数据 */
     gtk_tree_store_set(store, &iter,
                        CHECKED_COL, FALSE,          /* 第0列 */
-                       TEXT_COL, "Buy an apple",    /* 第1列 */
+                       TEXT_COL, "买苹果",    /* 第1列 */
                        -1);
 
     /* 再添加一行数据 */
     gtk_tree_store_append(store, &iter, NULL);
     gtk_tree_store_set(store, &iter,
                        CHECKED_COL, FALSE,          /* 第0列 */
-                       TEXT_COL, "Buy a pencil",    /* 第1列 */
+                       TEXT_COL, "买铅笔",    /* 第1列 */
                        -1);
     
     /* 创建多列视图 */
@@ -126,7 +126,7 @@ main (int    argc,
     int status;
 
     /* 创建 GtkApplication 实例 */
-    app = gtk_application_new ("org.gtk.example", G_APPLICATION_FLAGS_NONE);
+    app = gtk_application_new ("com.github.jiaowenjun.gtodo", G_APPLICATION_FLAGS_NONE);
 
     /* 绑定 GtkApplication 的 activate 信号处理函数 */
     g_signal_connect (app, "activate", G_CALLBACK (on_activate), NULL);
