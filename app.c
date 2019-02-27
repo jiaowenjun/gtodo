@@ -1,3 +1,4 @@
+#include <gio/gio.h>
 #include <gtk/gtk.h>
 
 /* 底层数据的各列索引 */
@@ -44,17 +45,69 @@ set_window_properties (GtkWindow *window)
 
 /* 添加一行数据 */
 static void
-append_todo_item (GtkTreeStore *store, gboolean checked, const gchar *text)
+append_todo_item (GtkTreeStore *treestore, gboolean checked, const gchar *text)
 {
     /* 获取新一行数据的行索引 */
     GtkTreeIter iter;
-    gtk_tree_store_append(store, &iter, NULL);
+    gtk_tree_store_append(treestore, &iter, NULL);
 
     /* 在该索引位置插入一行数据 */
-    gtk_tree_store_set(store, &iter,
+    gtk_tree_store_set(treestore, &iter,
                        CHECKED_COL, checked,    /* 第0列 */
                        TEXT_COL, text,          /* 第1列 */
                        -1);
+}
+
+
+/* 从文件加载待办列表
+ * 文件名为：list.txt
+ * 文件格式为：
+ *     - 每行为一个待办事项
+ *     - 每行格式为：是否已完成 逗号 待办内容
+ *     - 是否已完成由数字 0 或 1 表示：0未完成，1已完成
+ *     - 逗号前后无空格
+ *     - 待办内容为任意字符串（可以包含逗号）
+ * 例子：
+ * 
+ * 0,Buy an apple
+ * 1,Buy a pencil
+ * 
+ */
+static void
+load_list_from_file (GtkTreeStore *treestore)
+{
+    GFile *file;
+
+    /* 查询文件是否存在 */
+    file = g_file_new_for_path ("list.txt");
+    if (!g_file_query_exists (file, NULL))
+    {
+        return;
+    }
+
+    /* 打开文件 */
+    GFileInputStream *fin = g_file_read (file, NULL, NULL);
+    GDataInputStream *din = g_data_input_stream_new (G_INPUT_STREAM (fin));
+
+    gchar *line;
+    gsize len;
+
+    /* 按行读取文件 */
+    line = g_data_input_stream_read_line_utf8 (din, &len, NULL, NULL);
+    while (len > 0)
+    {
+        gchar **tokens;
+        tokens = g_strsplit (line, ",", 2);
+        gboolean checked = atoi(tokens[0]);
+        gchar *text = tokens[1];
+        append_todo_item (treestore, checked, text);
+
+        line = g_data_input_stream_read_line_utf8 (din, &len, NULL, NULL);
+    }
+
+    g_object_unref (file);
+    g_object_unref (fin);
+    g_object_unref (din);
 }
 
 
@@ -68,9 +121,8 @@ setup_tree_store ()
                                    G_TYPE_STRING    /* 第1列：待办项内容，字符串 */
                                    );
 
-    append_todo_item (treestore, FALSE, "Buy an apple");
-    append_todo_item (treestore, FALSE, "Buy a pencil");
-
+    /* 从文件加载待办列表 */
+    load_list_from_file (treestore);
 
     return treestore;
 }
