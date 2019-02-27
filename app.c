@@ -212,6 +212,9 @@ setup_tree_view (GtkTreeStore *treestore)
     GtkWidget *treeview;
     treeview = gtk_tree_view_new_with_model (GTK_TREE_MODEL(treestore));
 
+    /* 使视图中的待办事项可拖动 */
+    gtk_tree_view_set_reorderable (GTK_TREE_VIEW (treeview), TRUE);
+
     /* 创建视图第0列的渲染器：复选框 */
     GtkCellRenderer *checked_renderer;
     checked_renderer = gtk_cell_renderer_toggle_new ();
