@@ -44,7 +44,7 @@ set_window_properties (GtkWindow *window)
 
 /* 添加一行数据 */
 static void
-append_todo_item (GtkTreeStore *store, gboolean checked, gchar *text)
+append_todo_item (GtkTreeStore *store, gboolean checked, const gchar *text)
 {
     /* 获取新一行数据的行索引 */
     GtkTreeIter iter;
@@ -127,6 +127,25 @@ setup_tree_view (GtkTreeStore *treestore)
 }
 
 
+/* 点击输入框加号图标响应函数 */
+void
+on_icon_press (GtkEntry            *entry,
+               GtkEntryIconPosition icon_pos,
+               GdkEvent            *event,
+               gpointer             user_data)
+{
+    /* 1. 获取输入框文本 */
+    const gchar *text = gtk_entry_get_text (entry);
+    if (g_utf8_strlen(text, 100) == 0)
+    {
+        return;
+    }
+
+    /* 2. 添加待办事项 */
+    append_todo_item (GTK_TREE_STORE (user_data), FALSE, text);
+}
+
+
 /* GApplication 的 activate 信号处理函数*/
 static void
 on_activate (GtkApplication* app,
@@ -158,9 +177,14 @@ on_activate (GtkApplication* app,
     /* 向网格布局添加多列视图 */
     gtk_grid_attach (GTK_GRID (grid), treeview, 0, 0, 1, 1);  // x, y, width, height
 
-    /* 添加输入框 */
+    /* 创建输入框 */
     entry = gtk_entry_new ();
+
+    /* 输入框显示加号，并绑定响应函数 */
     gtk_entry_set_icon_from_icon_name (GTK_ENTRY (entry), GTK_ENTRY_ICON_SECONDARY, "list-add-symbolic");
+    g_signal_connect (entry, "icon-press", G_CALLBACK (on_icon_press), treestore);
+
+    /* 向网格布局添加输入框 */
     gtk_grid_attach (GTK_GRID (grid), entry, 0, 1, 1, 1);
 
     /* 向窗口添加 Grid */
