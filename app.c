@@ -111,6 +111,67 @@ load_list_from_file (GtkTreeStore *treestore)
 }
 
 
+/* 写入一项待办事项到文件 */
+static void
+write_one_item (GDataOutputStream *dout, gboolean checked, gchar *text)
+{
+    if (checked)
+    {
+        g_data_output_stream_put_string (dout, "1,", NULL, NULL);
+    }
+    else
+    {
+        g_data_output_stream_put_string (dout, "0,", NULL, NULL);
+    }
+    g_data_output_stream_put_string (dout, text, NULL, NULL);
+    g_data_output_stream_put_string (dout, "\n", NULL, NULL);
+}
+
+
+/* 将待办列表保存到文件 */
+static void
+save_list_to_file (GtkTreeModel *treemodel)
+{
+    GFile *file;
+    GFileOutputStream *fout;
+    GDataOutputStream *dout;
+
+    /* 删除已存在的文件 */
+    file = g_file_new_for_path ("list.txt");
+    if (g_file_query_exists (file, NULL))
+    {
+        g_file_delete (file, NULL, NULL);
+    }
+
+    /* 创建新文件 */
+    fout = g_file_create (file, G_FILE_CREATE_REPLACE_DESTINATION, NULL, NULL);
+    dout = g_data_output_stream_new (G_OUTPUT_STREAM (fout));
+
+    /* 读取底层数据 */
+    GtkTreeIter iter;
+    gboolean valid = gtk_tree_model_get_iter_first (treemodel, &iter);
+    while (valid)
+    {
+        gboolean checked;
+        gchararray text;
+        gtk_tree_model_get (treemodel, &iter,
+                            CHECKED_COL, &checked,
+                            TEXT_COL, &text,
+                            -1);
+        
+        /* 将一个待办事项写入文件一行 */
+        write_one_item (dout, checked, text);
+
+        /* 取下一个待办事项 */
+        valid = gtk_tree_model_iter_next (treemodel, &iter);
+    }
+
+    g_object_unref (file);
+    g_object_unref (fout);
+    g_object_unref (dout);
+}
+
+
 /* 创建底层数据 */
 static GtkTreeStore *
 setup_tree_store ()
@@ -223,6 +284,18 @@ on_icon_press (GtkEntry            *entry,
 }
 
 
+/* 窗口退出响应函数 */
+gboolean
+on_delete (GtkWidget *widget,
+           GdkEvent  *event,
+           gpointer   user_data)
+{
+    save_list_to_file (GTK_TREE_MODEL (user_data));
+    gtk_widget_destroy (widget);
+    return FALSE;
+}
+
+
 /* GApplication 的 activate 信号处理函数*/
 static void
 on_activate (GtkApplication* app,
@@ -266,6 +339,11 @@ on_activate (GtkApplication* app,
 
     /* 向窗口添加 Grid */
     gtk_container_add (GTK_CONTAINER (window), grid);
+
+    /* 窗口退出时的响应函数 */
+    g_signal_connect (window, "delete-event",
+                      G_CALLBACK (on_delete),
+                      treestore);
     
     /* 显示窗口 */
     gtk_widget_show_all (window);
