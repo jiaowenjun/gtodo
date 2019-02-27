@@ -136,7 +136,6 @@ on_activate (GtkApplication* app,
     GtkTreeStore *treestore;
     GtkWidget *treeview;
     GtkWidget *grid;
-    GtkWidget *button;
     GtkWidget *entry;
 
     /* 创建窗口 */
@@ -157,15 +156,12 @@ on_activate (GtkApplication* app,
     gtk_grid_set_column_spacing (GTK_GRID (grid), 10);
 
     /* 向网格布局添加多列视图 */
-    gtk_grid_attach (GTK_GRID (grid), treeview, 0, 0, 2, 1);  // x, y, width, height
+    gtk_grid_attach (GTK_GRID (grid), treeview, 0, 0, 1, 1);  // x, y, width, height
 
     /* 添加输入框 */
     entry = gtk_entry_new ();
+    gtk_entry_set_icon_from_icon_name (GTK_ENTRY (entry), GTK_ENTRY_ICON_SECONDARY, "list-add-symbolic");
     gtk_grid_attach (GTK_GRID (grid), entry, 0, 1, 1, 1);
-
-    /* 添加按钮 */
-    button = gtk_button_new_with_label ("Add Task");
-    gtk_grid_attach (GTK_GRID (grid), button, 1, 1, 1, 1);
 
     /* 向窗口添加 Grid */
     gtk_container_add (GTK_CONTAINER (window), grid);
