@@ -76,6 +76,22 @@ setup_tree_store ()
 }
 
 
+/* 编辑待办事项后更新底层数据 */
+void on_edited(GtkCellRendererText *renderer,
+               gchar *path,
+               gchar *new_text,
+               gpointer user_data)
+{
+    GtkTreeIter iter;
+    gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL (user_data),
+                                         &iter,
+                                         path);
+    gtk_tree_store_set (GTK_TREE_STORE (user_data), &iter,
+                       TEXT_COL, new_text,
+                       -1);
+}
+
+
 /* 创建多列视图 */
 static GtkWidget *
 setup_tree_view (GtkTreeStore *treestore)
@@ -107,6 +123,12 @@ setup_tree_view (GtkTreeStore *treestore)
     /* 创建视图第1列的渲染器：文本框 */
     GtkCellRenderer *text_renderer;
     text_renderer = gtk_cell_renderer_text_new ();
+
+    /* 文本框可双击编辑，编辑后更新底层数据 */
+    g_object_set (text_renderer, "editable", TRUE, NULL);
+    g_signal_connect (text_renderer, "edited",
+                      G_CALLBACK (on_edited),
+                      treestore);
 
     /* 创建视图第1列，启用渲染器，并将渲染器属性与底层数据绑定 */
     GtkTreeViewColumn *column1;
