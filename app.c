@@ -165,6 +165,9 @@ on_icon_press (GtkEntry            *entry,
 
     /* 2. 添加待办事项 */
     append_todo_item (GTK_TREE_STORE (user_data), FALSE, text);
+
+    /* 3. 清空输入框 */
+    gtk_entry_set_text (entry, "");
 }
 
 
